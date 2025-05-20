@@ -54,7 +54,7 @@ while success:
     visualized_mask = np.repeat(segmentation_mask[:, :, np.newaxis], 3, axis=2) * 255
 
     cv2.imshow('test', cv2.cvtColor(annotated_image, cv2.COLOR_RGB2BGR))
-    cv2.imshow('mask', visualized_mask)
+    # cv2.imshow('mask', visualized_mask)
     cv2.waitKey(1)
 
 cv2.destroyAllWindows()

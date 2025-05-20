@@ -15,7 +15,7 @@ python3 -m venv .venv
 
 2.
 ```
-pip install -r requirments.txt
+pip install -r requirements.txt
 ```
 
 ## Running
