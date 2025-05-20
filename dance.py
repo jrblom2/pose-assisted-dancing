@@ -3,8 +3,24 @@ from mediapipe import solutions
 from mediapipe.framework.formats import landmark_pb2
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
+from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
 import cv2
+
+
+def compare_detections(first, second):
+    landmarks1 = first.pose_landmarks[0]
+    landmarks2 = second.pose_landmarks[0]
+
+    # flatten
+    first = np.array([coord for lm in landmarks1 for coord in (lm.x, lm.y, lm.z)])
+    second = np.array([coord for lm in landmarks2 for coord in (lm.x, lm.y, lm.z)])
+
+    # maybe normalize step?
+    # TODO
+
+    # Pay attention to data type here, it is meant to do many comparisons at once so output is a table
+    return cosine_similarity(first.reshape(1, -1), second.reshape(1, -1))[0, 0]
 
 
 def draw_landmarks_on_image(rgb_image, detection_result):
@@ -47,11 +63,10 @@ while success:
 
     # STEP 4: Detect pose landmarks from the input image.
     detection_result = detector.detect(image)
-
     # STEP 5: Process the detection result. In this case, visualize it.
     annotated_image = draw_landmarks_on_image(image.numpy_view(), detection_result)
-    segmentation_mask = detection_result.segmentation_masks[0].numpy_view()
-    visualized_mask = np.repeat(segmentation_mask[:, :, np.newaxis], 3, axis=2) * 255
+    # segmentation_mask = detection_result.segmentation_masks[0].numpy_view()
+    # visualized_mask = np.repeat(segmentation_mask[:, :, np.newaxis], 3, axis=2) * 255
 
     cv2.imshow('test', cv2.cvtColor(annotated_image, cv2.COLOR_RGB2BGR))
     # cv2.imshow('mask', visualized_mask)
