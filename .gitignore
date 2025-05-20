@@ -174,3 +174,7 @@ cython_debug/
 .pypirc
 
 *.task
+
+# Don't include jpg or pt files
+*.jpg
+*.pt
