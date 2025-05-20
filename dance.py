@@ -1,75 +1,17 @@
-import mediapipe as mp
-from mediapipe import solutions
-from mediapipe.framework.formats import landmark_pb2
-from mediapipe.tasks import python
-from mediapipe.tasks.python import vision
-from sklearn.metrics.pairwise import cosine_similarity
-import numpy as np
 import cv2
+from mediaPipeCompare import mpCompare
 
-
-def compare_detections(first, second):
-    landmarks1 = first.pose_landmarks[0]
-    landmarks2 = second.pose_landmarks[0]
-
-    # flatten
-    first = np.array([coord for lm in landmarks1 for coord in (lm.x, lm.y, lm.z)])
-    second = np.array([coord for lm in landmarks2 for coord in (lm.x, lm.y, lm.z)])
-
-    # maybe normalize step?
-    # TODO
-
-    # Pay attention to data type here, it is meant to do many comparisons at once so output is a table
-    return cosine_similarity(first.reshape(1, -1), second.reshape(1, -1))[0, 0]
-
-
-def draw_landmarks_on_image(rgb_image, detection_result):
-    pose_landmarks_list = detection_result.pose_landmarks
-    annotated_image = np.copy(rgb_image)
-
-    # Loop through the detected poses to visualize.
-    for idx in range(len(pose_landmarks_list)):
-        pose_landmarks = pose_landmarks_list[idx]
-
-        # Draw the pose landmarks.
-        pose_landmarks_proto = landmark_pb2.NormalizedLandmarkList()
-        pose_landmarks_proto.landmark.extend(
-            [landmark_pb2.NormalizedLandmark(x=landmark.x, y=landmark.y, z=landmark.z) for landmark in pose_landmarks]
-        )
-        solutions.drawing_utils.draw_landmarks(
-            annotated_image,
-            pose_landmarks_proto,
-            solutions.pose.POSE_CONNECTIONS,
-            solutions.drawing_styles.get_default_pose_landmarks_style(),
-        )
-    return annotated_image
-
-
-# STEP 2: Create an PoseLandmarker object.
-base_options = python.BaseOptions(model_asset_path='pose_landmarker.task')
-options = vision.PoseLandmarkerOptions(base_options=base_options, output_segmentation_masks=True)
-detector = vision.PoseLandmarker.create_from_options(options)
-
-# STEP 3: Load the input image.
 vidObj = cv2.VideoCapture(0)
+mpCompare = mpCompare()
 success = True
 while success:
-
-    # vidObj object calls read
-    # function extract frames
     success, image = vidObj.read()
+    sets = mpCompare.detect(image)
+    annotated_image = mpCompare.draw_landmarks_on_image(image, sets)
+    if len(sets) == 2:
+        print(mpCompare.compare_detections(sets[0], sets[1]))
 
-    image = mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
-
-    # STEP 4: Detect pose landmarks from the input image.
-    detection_result = detector.detect(image)
-    # STEP 5: Process the detection result. In this case, visualize it.
-    annotated_image = draw_landmarks_on_image(image.numpy_view(), detection_result)
-    # segmentation_mask = detection_result.segmentation_masks[0].numpy_view()
-    # visualized_mask = np.repeat(segmentation_mask[:, :, np.newaxis], 3, axis=2) * 255
-
-    cv2.imshow('test', cv2.cvtColor(annotated_image, cv2.COLOR_RGB2BGR))
-    # cv2.imshow('mask', visualized_mask)
+    cv2.imshow('test', annotated_image)
     cv2.waitKey(1)
 
 cv2.destroyAllWindows()
