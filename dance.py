@@ -35,17 +35,26 @@ options = vision.PoseLandmarkerOptions(base_options=base_options, output_segment
 detector = vision.PoseLandmarker.create_from_options(options)
 
 # STEP 3: Load the input image.
-image = mp.Image.create_from_file("test.jpg")
+vidObj = cv2.VideoCapture(0)
+success = True
+while success:
 
-# STEP 4: Detect pose landmarks from the input image.
-detection_result = detector.detect(image)
+    # vidObj object calls read
+    # function extract frames
+    success, image = vidObj.read()
 
-# STEP 5: Process the detection result. In this case, visualize it.
-annotated_image = draw_landmarks_on_image(image.numpy_view(), detection_result)
-segmentation_mask = detection_result.segmentation_masks[0].numpy_view()
-visualized_mask = np.repeat(segmentation_mask[:, :, np.newaxis], 3, axis=2) * 255
+    image = mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
 
-cv2.imshow('test', cv2.cvtColor(annotated_image, cv2.COLOR_RGB2BGR))
-cv2.imshow('mask', visualized_mask)
-cv2.waitKey(0)
+    # STEP 4: Detect pose landmarks from the input image.
+    detection_result = detector.detect(image)
+
+    # STEP 5: Process the detection result. In this case, visualize it.
+    annotated_image = draw_landmarks_on_image(image.numpy_view(), detection_result)
+    segmentation_mask = detection_result.segmentation_masks[0].numpy_view()
+    visualized_mask = np.repeat(segmentation_mask[:, :, np.newaxis], 3, axis=2) * 255
+
+    cv2.imshow('test', cv2.cvtColor(annotated_image, cv2.COLOR_RGB2BGR))
+    cv2.imshow('mask', visualized_mask)
+    cv2.waitKey(1)
+
 cv2.destroyAllWindows()
