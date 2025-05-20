@@ -7,7 +7,7 @@ vidObj = cv2.VideoCapture(6)
 success = True
 while success:    
     success, image = vidObj.read()   
-    result = model(image)
+    result = model(image, verbose=False)
     annotated_image = result[0].plot()
 
     cv2.imshow("", annotated_image)     
