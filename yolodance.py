@@ -1,5 +1,6 @@
 import cv2
 from yoloCompare import yoCompare
+import numpy as np
 
 
 yolo = yoCompare()
@@ -9,6 +10,10 @@ while success:
     success, image = vidObj.read()   
     result = yolo.detect(image)
     annotated_image = yolo.annotate_image(result)
+    keypoints = result[0].keypoints.xy.cpu().numpy()
+
+    if len(keypoints) == 2:
+        print(yolo.compare_detections(keypoints[0], keypoints[1]))
 
     cv2.imshow("", annotated_image)     
     
