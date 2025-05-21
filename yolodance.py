@@ -1,14 +1,14 @@
 import cv2
-from ultralytics import YOLO
+from yoloCompare import yoCompare
 
 
-model = YOLO('yolo11n-pose.pt')
+yolo = yoCompare()
 vidObj = cv2.VideoCapture(6)
 success = True
 while success:    
     success, image = vidObj.read()   
-    result = model(image, verbose=False)
-    annotated_image = result[0].plot()
+    result = yolo.detect(image)
+    annotated_image = yolo.annotate_image(result)
 
     cv2.imshow("", annotated_image)     
     
