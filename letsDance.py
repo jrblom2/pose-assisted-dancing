@@ -12,8 +12,19 @@ def load_video(video_path):
 
 
 def dance_compare(video_path, model):
+    # Variables for text
+    score = 0
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    font_scale = 1.5
+    font_thickness = 3
+    text_color = (0, 255, 0)  # Green (BGR format)
+    text_position = (50, 50)   # (x, y) coordinates (top-left corner)
+
+    # Load video and start stream
     vid = load_video(video_path)
     stream = cv2.VideoCapture(6)
+
+    # Execute models
     vidSuccess = True
     streamSuccess = True
     if model == "yolo":
@@ -37,7 +48,20 @@ def dance_compare(video_path, model):
             # if len(stream_keypoints) == 2:
             #     print(yolo.compare_detections(stream_keypoints[0], stream_keypoints[1]))
 
+            # Combine frames and add score text
+            text = f'Score: {score}'
+            score += 1 ################################# Placeholder to see changing score
             frame = np.hstack((vid_annotated_image, stream_annotated_image))
+            cv2.putText(
+                frame, 
+                text, 
+                text_position, 
+                font, 
+                font_scale, 
+                text_color, 
+                font_thickness, 
+                cv2.LINE_AA
+            )
 
             cv2.imshow("", frame)     
             
@@ -59,10 +83,24 @@ def dance_compare(video_path, model):
             stream_sets = mp.detect(stream_image)
             vid_annotated_image = mp.draw_landmarks_on_image(vid_frame, vid_sets)
             stream_annotated_image = mp.draw_landmarks_on_image(stream_image, stream_sets)
+
             # if len(sets) == 2:
             #     print(mp.compare_detections(sets[0], sets[1]))
 
+            # Combine frames and add score text
+            text = f'Score: {score}'
+            score += 1 ################################# Placeholder to see changing score
             frame = np.hstack((vid_annotated_image, stream_annotated_image))
+            cv2.putText(
+                frame, 
+                text, 
+                text_position, 
+                font, 
+                font_scale, 
+                text_color, 
+                font_thickness, 
+                cv2.LINE_AA
+            )
 
             cv2.imshow('', frame)
             
