@@ -25,9 +25,7 @@ def dance_compare(video_path, model):
             # Resize images to the same size
             if not vidSuccess or not streamSuccess:
                 break
-            height = min(vid_image.shape[0], stream_image.shape[0])
-            vid_frame = cv2.resize(vid_image, (int(vid_image.shape[1] * height / vid_image.shape[0]), height))
-            stream_frame = cv2.resize(stream_image, (int(stream_image.shape[1] * height / stream_image.shape[0]), height))
+            vid_frame, stream_frame = resize_images(vid_image, stream_image)
 
             vid_result = yolo.detect(vid_frame)
             stream_result = yolo.detect(stream_frame)
@@ -46,12 +44,41 @@ def dance_compare(video_path, model):
             if (cv2.waitKey(1) & 0xFF == ord("q")) or (cv2.waitKey(1)==27):
                 break
 
-        cv2.destroyAllWindows()
+    if model == "mediapipe":
+        mp = mpCompare()
+        while streamSuccess:
+            vidSuccess, vid_image = vid.read()
+            streamSuccess, stream_image = stream.read()
+
+            # Resize images to the same size
+            if not vidSuccess or not streamSuccess:
+                break
+            vid_frame, stream_frame = resize_images(vid_image, stream_image)
+
+            vid_sets = mp.detect(vid_frame)
+            stream_sets = mp.detect(stream_image)
+            vid_annotated_image = mp.draw_landmarks_on_image(vid_frame, vid_sets)
+            stream_annotated_image = mp.draw_landmarks_on_image(stream_image, stream_sets)
+            # if len(sets) == 2:
+            #     print(mp.compare_detections(sets[0], sets[1]))
+
+            frame = np.hstack((vid_annotated_image, stream_annotated_image))
+
+            cv2.imshow('', frame)
+            
+            if (cv2.waitKey(1) & 0xFF == ord("q")) or (cv2.waitKey(1)==27):
+                break
 
 
+def resize_images(vid_image, stream_image):
+    height = min(vid_image.shape[0], stream_image.shape[0])
+    vid_frame = cv2.resize(vid_image, (int(vid_image.shape[1] * height / vid_image.shape[0]), height))
+    stream_frame = cv2.resize(stream_image, (int(stream_image.shape[1] * height / stream_image.shape[0]), height))
+    return vid_frame, stream_frame
 
 def main():
     dance_compare('dance_videos/dance1.mp4', 'yolo')
+    # dance_compare('dance_videos/dance1.mp4', 'mediapipe')
     return 0
 
 
