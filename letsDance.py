@@ -11,6 +11,10 @@ def load_video(video_path):
     return video
 
 
+def load_image(img_path):
+    return cv2.imread(img_path)
+
+
 def dance_compare(video_path, model):
     # Variables for text
     score = 0
@@ -18,10 +22,11 @@ def dance_compare(video_path, model):
     font_scale = 1.5
     font_thickness = 3
     text_color = (0, 255, 0)  # Green (BGR format)
-    text_position = (50, 50)   # (x, y) coordinates (top-left corner)
+    text_position = (50, 50)  # (x, y) coordinates (top-left corner)
 
     # Load video and start stream
     vid = load_video(video_path)
+    img = load_image('dance_videos/test.jpg')
     stream = cv2.VideoCapture(6)
 
     # Execute models
@@ -29,8 +34,8 @@ def dance_compare(video_path, model):
     streamSuccess = True
     if model == "yolo":
         yolo = yoCompare()
-        while vidSuccess and streamSuccess:    
-            vidSuccess, vid_image = vid.read()
+        while vidSuccess and streamSuccess:
+            vidSuccess, vid_image = True, img
             streamSuccess, stream_image = stream.read()
 
             # Resize images to the same size
@@ -42,30 +47,21 @@ def dance_compare(video_path, model):
             stream_result = yolo.detect(stream_frame)
             vid_annotated_image = yolo.annotate_image(vid_result)
             stream_annotated_image = yolo.annotate_image(stream_result)
-            vid_keypoints = vid_result[0].keypoints.xy.cpu().numpy()
-            stream_keypoints = stream_result[0].keypoints.xy.cpu().numpy()
+            vid_keypoints = vid_result[0].keypoints.xy[0].cpu().numpy()
+            stream_keypoints = stream_result[0].keypoints.xy[0].cpu().numpy()
 
             # if len(stream_keypoints) == 2:
             #     print(yolo.compare_detections(stream_keypoints[0], stream_keypoints[1]))
 
             # Combine frames and add score text
             text = f'Score: {score}'
-            score += 1 ################################# Placeholder to see changing score
+            score = yolo.compare_detections(vid_keypoints, stream_keypoints)
             frame = np.hstack((vid_annotated_image, stream_annotated_image))
-            cv2.putText(
-                frame, 
-                text, 
-                text_position, 
-                font, 
-                font_scale, 
-                text_color, 
-                font_thickness, 
-                cv2.LINE_AA
-            )
+            cv2.putText(frame, text, text_position, font, font_scale, text_color, font_thickness, cv2.LINE_AA)
 
-            cv2.imshow("", frame)     
-            
-            if (cv2.waitKey(1) & 0xFF == ord("q")) or (cv2.waitKey(1)==27):
+            cv2.imshow("", frame)
+
+            if (cv2.waitKey(1) & 0xFF == ord("q")) or (cv2.waitKey(1) == 27):
                 break
 
     if model == "mediapipe":
@@ -80,31 +76,18 @@ def dance_compare(video_path, model):
             vid_frame, stream_frame = resize_images(vid_image, stream_image)
 
             vid_sets = mp.detect(vid_frame)
-            stream_sets = mp.detect(stream_image)
+            stream_sets = mp.detect(stream_frame)
             vid_annotated_image = mp.draw_landmarks_on_image(vid_frame, vid_sets)
-            stream_annotated_image = mp.draw_landmarks_on_image(stream_image, stream_sets)
-
-            # if len(sets) == 2:
-            #     print(mp.compare_detections(sets[0], sets[1]))
-
+            stream_annotated_image = mp.draw_landmarks_on_image(stream_frame, stream_sets)
             # Combine frames and add score text
             text = f'Score: {score}'
-            score += 1 ################################# Placeholder to see changing score
+            score = mp.compare_detections(vid_sets[0], stream_sets[0])
             frame = np.hstack((vid_annotated_image, stream_annotated_image))
-            cv2.putText(
-                frame, 
-                text, 
-                text_position, 
-                font, 
-                font_scale, 
-                text_color, 
-                font_thickness, 
-                cv2.LINE_AA
-            )
+            cv2.putText(frame, text, text_position, font, font_scale, text_color, font_thickness, cv2.LINE_AA)
 
             cv2.imshow('', frame)
-            
-            if (cv2.waitKey(1) & 0xFF == ord("q")) or (cv2.waitKey(1)==27):
+
+            if (cv2.waitKey(1) & 0xFF == ord("q")) or (cv2.waitKey(1) == 27):
                 break
 
 
@@ -113,6 +96,7 @@ def resize_images(vid_image, stream_image):
     vid_frame = cv2.resize(vid_image, (int(vid_image.shape[1] * height / vid_image.shape[0]), height))
     stream_frame = cv2.resize(stream_image, (int(stream_image.shape[1] * height / stream_image.shape[0]), height))
     return vid_frame, stream_frame
+
 
 def main():
     dance_compare('dance_videos/dance1.mp4', 'yolo')

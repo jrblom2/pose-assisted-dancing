@@ -1,7 +1,7 @@
 import cv2
 from mediaPipeCompare import mpCompare
 
-vidObj = cv2.VideoCapture(0)
+vidObj = cv2.VideoCapture(6)
 mpCompare = mpCompare()
 success = True
 while success:
