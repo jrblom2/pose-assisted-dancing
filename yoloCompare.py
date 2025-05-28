@@ -43,9 +43,16 @@ class yoCompare:
         return annotated_image
 
     def compare_detections(self, first, second):
+        filteredFirst = []
+        filteredSecond = []
+        for f, s in zip(first, second):
+            if f[0] != 0 and f[1] != 0 and s[0] != 0 and s[1] != 0:
+                filteredFirst.append(f)
+                filteredSecond.append(s)
+
         # flatten
-        firstFlat = normalize(first)
-        secondFlat = normalize(second)
+        firstFlat = normalize(filteredFirst)
+        secondFlat = normalize(filteredSecond)
 
         # Pay attention to data type here, it is meant to do many comparisons at once so output is a table
         return cosine_similarity(firstFlat.reshape(1, -1), secondFlat.reshape(1, -1))[0, 0]
