@@ -64,7 +64,12 @@ class mpCompare:
         return annotated_image
 
     def compare_detections(self, first, second):
-
+        filteredFirst = []
+        filteredSecond = []
+        for f, s in zip(first, second):
+            if f.x != 0 and f.y != 0 and s.x != 0 and s.y != 0:
+                filteredFirst.append(f)
+                filteredSecond.append(s)
         # flatten
         firstFlat = normalize(first)
         secondFlat = normalize(second)
