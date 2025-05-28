@@ -3,6 +3,14 @@ from ultralytics import YOLO
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
 
+# Variables for text
+score = 0
+font = cv2.FONT_HERSHEY_SIMPLEX
+font_scale = 1.5
+font_thickness = 3
+text_color = (0, 255, 0)  # Green (BGR format)
+text_position = (50, 50)  # (x, y) coordinates (top-left corner)
+
 
 def normalize(landmarks):
     # Extract all x, y, z into arrays
@@ -56,3 +64,45 @@ class yoCompare:
 
         # Pay attention to data type here, it is meant to do many comparisons at once so output is a table
         return cosine_similarity(firstFlat.reshape(1, -1), secondFlat.reshape(1, -1))[0, 0]
+
+    def dance_compare(self, video_path):
+        # Load video and start stream
+        vid = cv2.VideoCapture(video_path)
+        # img = load_image('dance_videos/test.jpg')
+        stream = cv2.VideoCapture(6)
+
+        # Execute models
+        vidSuccess = True
+        streamSuccess = True
+        while vidSuccess and streamSuccess:
+            vidSuccess, vid_image = vid.read()
+            streamSuccess, stream_image = stream.read()
+
+            # Resize images to the same size
+            if not vidSuccess or not streamSuccess:
+                break
+            vid_frame, stream_frame = self.resize_images(vid_image, stream_image)
+
+            vid_result = self.detect(vid_frame)
+            stream_result = self.detect(stream_frame)
+            vid_annotated_image = self.annotate_image(vid_result)
+            stream_annotated_image = self.annotate_image(stream_result)
+            vid_keypoints = vid_result[0].keypoints.xy[0].cpu().numpy()
+            stream_keypoints = stream_result[0].keypoints.xy[0].cpu().numpy()
+
+            # Combine frames and add score text
+            score = self.compare_detections(vid_keypoints, stream_keypoints)
+            text = f'Score: {score}'
+            frame = np.hstack((vid_annotated_image, stream_annotated_image))
+            cv2.putText(frame, text, text_position, font, font_scale, text_color, font_thickness, cv2.LINE_AA)
+
+            cv2.imshow("", frame)
+
+            if (cv2.waitKey(1) & 0xFF == ord("q")) or (cv2.waitKey(1) == 27):
+                break
+
+    def resize_images(self, vid_image, stream_image):
+        height = min(vid_image.shape[0], stream_image.shape[0])
+        vid_frame = cv2.resize(vid_image, (int(vid_image.shape[1] * height / vid_image.shape[0]), height))
+        stream_frame = cv2.resize(stream_image, (int(stream_image.shape[1] * height / stream_image.shape[0]), height))
+        return vid_frame, stream_frame
