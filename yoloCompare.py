@@ -65,6 +65,25 @@ class yoCompare:
         # Pay attention to data type here, it is meant to do many comparisons at once so output is a table
         return cosine_similarity(firstFlat.reshape(1, -1), secondFlat.reshape(1, -1))[0, 0]
 
+    def pose_compare(self):
+        vidObj = cv2.VideoCapture(6)
+        success = True
+        while success:
+            success, image = vidObj.read()
+            result = self.detect(image)
+            annotated_image = self.annotate_image(result)
+            keypoints = result[0].keypoints.xy.cpu().numpy()
+
+            if len(keypoints) == 2:
+                print(self.compare_detections(keypoints[0], keypoints[1]))
+
+            cv2.imshow("", annotated_image)
+
+            if (cv2.waitKey(1) & 0xFF == ord("q")) or (cv2.waitKey(1) == 27):
+                break
+
+        cv2.destroyAllWindows()
+
     def dance_compare(self, video_path):
         # Load video and start stream
         vid = cv2.VideoCapture(video_path)
