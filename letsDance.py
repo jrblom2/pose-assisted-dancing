@@ -99,8 +99,10 @@ def resize_images(vid_image, stream_image):
 
 
 def main():
-    dance_compare('dance_videos/dance1.mp4', 'yolo')
+    # dance_compare('dance_videos/dance1.mp4', 'yolo')
     # dance_compare('dance_videos/dance1.mp4', 'mediapipe')
+    # mp = mpCompare()
+    # mp.pose_compare()
     return 0
 
 
