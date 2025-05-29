@@ -77,7 +77,8 @@ class mpCompare:
         secondFlat = normalize(second)
 
         # Pay attention to data type here, it is meant to do many comparisons at once so output is a table
-        return cosine_similarity(firstFlat.reshape(1, -1), secondFlat.reshape(1, -1))[0, 0]
+        score = cosine_similarity(firstFlat.reshape(1, -1), secondFlat.reshape(1, -1))[0, 0]
+        return [score]
 
     def detect(self, image):
         image = mp.Image(image_format=mp.ImageFormat.SRGB, data=cv2.cvtColor(image, cv2.COLOR_BGR2RGB))

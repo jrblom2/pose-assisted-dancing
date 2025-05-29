@@ -8,11 +8,13 @@ font_scale = 1.5
 font_thickness = 3
 text_color = (0, 255, 0)  # Green (BGR format)
 text_position = (50, 50)  # (x, y) coordinates (top-left corner)
+text2_position = (50, 100)  # (x, y) coordinates (top-left corner)
 
 
 class poseCompare:
 
     def __init__(self, modelName):
+        self.model_name = modelName
         if modelName == 'yolo':
             self.model = yoCompare()
         else:
@@ -71,6 +73,8 @@ class poseCompare:
         # Execute models
         vidSuccess = True
         streamSuccess = True
+        runningScore = []
+        count = 1
         while streamSuccess and vidSuccess:
             vidSuccess, vid_image = vid.read()
             streamSuccess, stream_image = stream.read()
@@ -84,9 +88,14 @@ class poseCompare:
             stream_annotated_image = self.model.draw_landmarks_on_image(stream_frame, stream_sets)
             # Combine frames and add score text
             score = self.model.compare_detections(vid_sets, stream_sets)
-            text = f'Score: {score}'
+            for s in score:
+                runningScore.append(s)
+            rsAvg = round(sum(runningScore) / len(runningScore), 2) if runningScore else 0
+            text = f'Current Score: {score}'
+            text2 = f'Running Score: {rsAvg}'
             frame = np.hstack((vid_annotated_image, stream_annotated_image))
             cv2.putText(frame, text, text_position, font, font_scale, text_color, font_thickness, cv2.LINE_AA)
+            cv2.putText(frame, text2, text2_position, font, font_scale, text_color, font_thickness, cv2.LINE_AA)
 
             cv2.imshow('', frame)
 
