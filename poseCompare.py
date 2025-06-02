@@ -3,12 +3,13 @@ import numpy as np
 from yoloCompare import yoCompare
 from mediaPipeCompare import mpCompare
 import random
+import time
 
 font = cv2.FONT_HERSHEY_SIMPLEX
-font_scale = 1.5
-font_thickness = 3
+font_scale = 0.75
+font_thickness = 2
 text_color = (0, 255, 0)  # Green (BGR format)
-text_position = (50, 50)
+text_position = (50, 30)
 
 
 class poseCompare:
@@ -77,6 +78,12 @@ class poseCompare:
         runningScore = {}
         colors = {}
 
+        # setup output
+        startTime = time.time()
+        output_file = f'output/{startTime}.mp4'
+        fourcc = cv2.VideoWriter_fourcc(*'MP4V')
+        frames = []
+
         while streamSuccess and vidSuccess:
             vidSuccess, vid_image = vid.read()
             streamSuccess, stream_image = stream.read()
@@ -106,15 +113,27 @@ class poseCompare:
                 text = f'Current Score: {f'{s:.2f}'}'
                 text2 = f'Running Score: {rsAvg}'
                 font_size = font_scale / len(runningScore)
-                text_position = (50, 100 * i + 50)  # (x, y) coordinates (top-left corner)
-                text2_position = (50, 100 * i + 100)
+                text_position = (50, 60 * i + 30)  # (x, y) coordinates (top-left corner)
+                text2_position = (50, 60 * i + 60)
                 cv2.putText(frame, text, text_position, font, font_size, colors[i], font_thickness, cv2.LINE_AA)
                 cv2.putText(frame, text2, text2_position, font, font_size, colors[i], font_thickness, cv2.LINE_AA)
 
+            frame = cv2.resize(frame, None, fx=1.5, fy=1.5)
+            frames.append(frame)
             cv2.imshow('', frame)
 
             if (cv2.waitKey(1) & 0xFF == ord("q")) or (cv2.waitKey(1) == 27):
                 break
+
+        # write video
+        endTime = time.time()
+        fps = len(frames) / (endTime - startTime)
+        height = frames[0].shape[0]
+        width = frames[0].shape[1]
+        video_writer = cv2.VideoWriter(output_file, fourcc, fps, (width, height))
+        for frame in frames:
+            video_writer.write(frame)
+        video_writer.release()
 
     def resize_images(self, vid_image, stream_image):
         height = min(vid_image.shape[0], stream_image.shape[0])

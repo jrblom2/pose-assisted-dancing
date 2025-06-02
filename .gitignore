@@ -178,3 +178,5 @@ cython_debug/
 # Don't include jpg or pt files
 *.jpg
 *.pt
+
+output/
