@@ -59,20 +59,20 @@ class yoCompare:
 
         for result in results:
             if result.keypoints is not None:
-                keypoints = result.keypoints.data[0]  # [num_keypoints, 3]
-                if not len(keypoints) > 0:
-                    continue
-                # Draw keypoints
-                for x, y, conf in keypoints:
-                    if conf > 0.5:
-                        cv2.circle(annotated_image, (int(x), int(y)), 3, (0, 255, 0), -1)
+                for keypoints in result.keypoints.data:
+                    if not len(keypoints) > 0:
+                        continue
+                    # Draw keypoints
+                    for x, y, conf in keypoints:
+                        if conf > 0.5:
+                            cv2.circle(annotated_image, (int(x), int(y)), 3, (0, 255, 0), -1)
 
-                # Draw connections
-                for start_idx, end_idx in COCO_CONNECTIONS:
-                    x1, y1, c1 = keypoints[start_idx]
-                    x2, y2, c2 = keypoints[end_idx]
-                    if c1 > 0.5 and c2 > 0.5:
-                        cv2.line(annotated_image, (int(x1), int(y1)), (int(x2), int(y2)), (255, 0, 0), 2)
+                    # Draw connections
+                    for start_idx, end_idx in COCO_CONNECTIONS:
+                        x1, y1, c1 = keypoints[start_idx]
+                        x2, y2, c2 = keypoints[end_idx]
+                        if c1 > 0.5 and c2 > 0.5:
+                            cv2.line(annotated_image, (int(x1), int(y1)), (int(x2), int(y2)), (255, 0, 0), 2)
 
         return annotated_image
 
