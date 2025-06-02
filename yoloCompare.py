@@ -60,7 +60,8 @@ class yoCompare:
         for result in results:
             if result.keypoints is not None:
                 keypoints = result.keypoints.data[0]  # [num_keypoints, 3]
-
+                if not len(keypoints) > 0:
+                    continue
                 # Draw keypoints
                 for x, y, conf in keypoints:
                     if conf > 0.5:
@@ -86,6 +87,10 @@ class yoCompare:
                 if f[0] != 0 and f[1] != 0 and s[0] != 0 and s[1] != 0:
                     filteredFirst.append(f)
                     filteredSecond.append(s)
+
+            if len(filteredFirst) < 1 or len(filteredSecond) < 1:
+                continue
+
             # flatten
             firstFlat = normalize(filteredFirst)
             secondFlat = normalize(filteredSecond)

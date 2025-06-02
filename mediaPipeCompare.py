@@ -65,20 +65,26 @@ class mpCompare:
 
     def compare_detections(self, first, second):
         first = first[0]
-        second = second[0]
-        filteredFirst = []
-        filteredSecond = []
-        for f, s in zip(first, second):
-            if f.x != 0 and f.y != 0 and s.x != 0 and s.y != 0:
-                filteredFirst.append(f)
-                filteredSecond.append(s)
-        # flatten
-        firstFlat = normalize(first)
-        secondFlat = normalize(second)
+        scores = []
+        for detection in second:
+            filteredFirst = []
+            filteredSecond = []
+            for f, s in zip(first, detection):
+                if f.x != 0 and f.y != 0 and s.x != 0 and s.y != 0:
+                    filteredFirst.append(f)
+                    filteredSecond.append(s)
 
-        # Pay attention to data type here, it is meant to do many comparisons at once so output is a table
-        score = cosine_similarity(firstFlat.reshape(1, -1), secondFlat.reshape(1, -1))[0, 0]
-        return [score]
+            if len(filteredFirst) < 1 or len(filteredSecond) < 1:
+                return [0]
+
+            # flatten
+            firstFlat = normalize(filteredFirst)
+            secondFlat = normalize(filteredSecond)
+
+            # Pay attention to data type here, it is meant to do many comparisons at once so output is a table
+            score = cosine_similarity(firstFlat.reshape(1, -1), secondFlat.reshape(1, -1))[0, 0]
+            scores.append(score)
+        return scores
 
     def detect(self, image):
         image = mp.Image(image_format=mp.ImageFormat.SRGB, data=cv2.cvtColor(image, cv2.COLOR_BGR2RGB))

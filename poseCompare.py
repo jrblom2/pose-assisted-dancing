@@ -92,6 +92,10 @@ class poseCompare:
             # Combine frames and add score text
             frame = np.hstack((vid_annotated_image, stream_annotated_image))
 
+            # Check for existance of pose detections in both
+            if len(vid_sets) < 1 or len(stream_sets) < 1:
+                continue
+
             scores = self.model.compare_detections(vid_sets, stream_sets)
             for i, s in enumerate(scores):
                 if i not in runningScore:
@@ -99,12 +103,13 @@ class poseCompare:
                     colors[i] = tuple(random.randint(0, 255) for _ in range(3))
                 runningScore[i].append(s)
                 rsAvg = round(sum(runningScore[i]) / len(runningScore[i]), 2) if runningScore[i] else 0
-                text = f'Current Score: {s}'
+                text = f'Current Score: {f'{s:.2f}'}'
                 text2 = f'Running Score: {rsAvg}'
+                font_size = font_scale / len(runningScore)
                 text_position = (50, 100 * i + 50)  # (x, y) coordinates (top-left corner)
                 text2_position = (50, 100 * i + 100)
-                cv2.putText(frame, text, text_position, font, font_scale, colors[i], font_thickness, cv2.LINE_AA)
-                cv2.putText(frame, text2, text2_position, font, font_scale, colors[i], font_thickness, cv2.LINE_AA)
+                cv2.putText(frame, text, text_position, font, font_size, colors[i], font_thickness, cv2.LINE_AA)
+                cv2.putText(frame, text2, text2_position, font, font_size, colors[i], font_thickness, cv2.LINE_AA)
 
             cv2.imshow('', frame)
 
