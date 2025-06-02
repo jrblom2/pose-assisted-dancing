@@ -112,9 +112,12 @@ class poseCompare:
                 rsAvg = round(sum(runningScore[i]) / len(runningScore[i]), 2) if runningScore[i] else 0
                 text = f'Current Score: {f'{s:.2f}'}'
                 text2 = f'Running Score: {rsAvg}'
+
+                # TODO should make position scale as font size gets smaller because of more scores
                 font_size = font_scale / len(runningScore)
                 text_position = (50, 60 * i + 30)  # (x, y) coordinates (top-left corner)
                 text2_position = (50, 60 * i + 60)
+
                 cv2.putText(frame, text, text_position, font, font_size, colors[i], font_thickness, cv2.LINE_AA)
                 cv2.putText(frame, text2, text2_position, font, font_size, colors[i], font_thickness, cv2.LINE_AA)
 
