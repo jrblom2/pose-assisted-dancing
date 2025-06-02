@@ -2,13 +2,13 @@ import cv2
 import numpy as np
 from yoloCompare import yoCompare
 from mediaPipeCompare import mpCompare
+import random
 
 font = cv2.FONT_HERSHEY_SIMPLEX
 font_scale = 1.5
 font_thickness = 3
 text_color = (0, 255, 0)  # Green (BGR format)
-text_position = (50, 50)  # (x, y) coordinates (top-left corner)
-text2_position = (50, 100)  # (x, y) coordinates (top-left corner)
+text_position = (50, 50)
 
 
 class poseCompare:
@@ -37,7 +37,7 @@ class poseCompare:
             stream_annotated_image = self.model.draw_landmarks_on_image(stream_frame, stream_sets)
             # Combine frames and add score text
             score = self.model.compare_detections(vid_sets, stream_sets)
-            text = f'Score: {score}'
+            text = f'Score: {score[0]}'
             frame = np.hstack((vid_annotated_image, stream_annotated_image))
             cv2.putText(frame, text, text_position, font, font_scale, text_color, font_thickness, cv2.LINE_AA)
 
@@ -55,7 +55,7 @@ class poseCompare:
             annotated_image = self.model.draw_landmarks_on_image(image, sets)
             if len(sets) == 2:
                 score = self.model.compare_detections(sets[0], sets[1])
-                text = f'Score: {score:.2f}'
+                text = f'Score: {score[0]:.2f}'
                 cv2.putText(
                     annotated_image, text, text_position, font, font_scale, text_color, font_thickness, cv2.LINE_AA
                 )
@@ -67,18 +67,20 @@ class poseCompare:
     def dance_compare(self, video_path):
         # Load video and start stream
         vid = cv2.VideoCapture(video_path)
-        # img = load_image('dance_videos/test.jpg')
         stream = cv2.VideoCapture(6)
 
         # Execute models
         vidSuccess = True
         streamSuccess = True
-        runningScore = []
-        count = 1
+
+        # index in runningScore will corresond to a player. Players can steal score by swapping detections haha
+        runningScore = {}
+        colors = {}
+
         while streamSuccess and vidSuccess:
             vidSuccess, vid_image = vid.read()
             streamSuccess, stream_image = stream.read()
-
+            stream_image = cv2.flip(stream_image, 1)
             # Resize images to the same size
             vid_frame, stream_frame = self.resize_images(vid_image, stream_image)
 
@@ -86,16 +88,23 @@ class poseCompare:
             stream_sets = self.model.detect(stream_frame)
             vid_annotated_image = self.model.draw_landmarks_on_image(vid_frame, vid_sets)
             stream_annotated_image = self.model.draw_landmarks_on_image(stream_frame, stream_sets)
+
             # Combine frames and add score text
-            score = self.model.compare_detections(vid_sets, stream_sets)
-            for s in score:
-                runningScore.append(s)
-            rsAvg = round(sum(runningScore) / len(runningScore), 2) if runningScore else 0
-            text = f'Current Score: {score}'
-            text2 = f'Running Score: {rsAvg}'
             frame = np.hstack((vid_annotated_image, stream_annotated_image))
-            cv2.putText(frame, text, text_position, font, font_scale, text_color, font_thickness, cv2.LINE_AA)
-            cv2.putText(frame, text2, text2_position, font, font_scale, text_color, font_thickness, cv2.LINE_AA)
+
+            scores = self.model.compare_detections(vid_sets, stream_sets)
+            for i, s in enumerate(scores):
+                if i not in runningScore:
+                    runningScore[i] = []
+                    colors[i] = tuple(random.randint(0, 255) for _ in range(3))
+                runningScore[i].append(s)
+                rsAvg = round(sum(runningScore[i]) / len(runningScore[i]), 2) if runningScore[i] else 0
+                text = f'Current Score: {s}'
+                text2 = f'Running Score: {rsAvg}'
+                text_position = (50, 100 * i + 50)  # (x, y) coordinates (top-left corner)
+                text2_position = (50, 100 * i + 100)
+                cv2.putText(frame, text, text_position, font, font_scale, colors[i], font_thickness, cv2.LINE_AA)
+                cv2.putText(frame, text2, text2_position, font, font_scale, colors[i], font_thickness, cv2.LINE_AA)
 
             cv2.imshow('', frame)
 
