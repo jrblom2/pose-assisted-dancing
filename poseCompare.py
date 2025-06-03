@@ -4,6 +4,7 @@ from yoloCompare import yoCompare
 from mediaPipeCompare import mpCompare
 import random
 import time
+from ffpyplayer.player import MediaPlayer
 
 font = cv2.FONT_HERSHEY_SIMPLEX
 font_scale = 0.75
@@ -69,6 +70,7 @@ class poseCompare:
         # Load video and start stream
         vid = cv2.VideoCapture(video_path)
         stream = cv2.VideoCapture(6)
+        audio = MediaPlayer(video_path)
 
         # Execute models
         vidSuccess = True
@@ -87,6 +89,7 @@ class poseCompare:
         while streamSuccess and vidSuccess:
             vidSuccess, vid_image = vid.read()
             streamSuccess, stream_image = stream.read()
+            audio_frame, val = audio.get_frame()
             if not vidSuccess or not streamSuccess:
                 break
             stream_image = cv2.flip(stream_image, 1)
