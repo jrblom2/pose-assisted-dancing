@@ -7,7 +7,7 @@ import time
 
 font = cv2.FONT_HERSHEY_SIMPLEX
 font_scale = 0.75
-font_thickness = 2
+font_thickness = 1
 text_color = (0, 255, 0)  # Green (BGR format)
 text_position = (50, 30)
 
@@ -87,6 +87,8 @@ class poseCompare:
         while streamSuccess and vidSuccess:
             vidSuccess, vid_image = vid.read()
             streamSuccess, stream_image = stream.read()
+            if not vidSuccess or not streamSuccess:
+                break
             stream_image = cv2.flip(stream_image, 1)
             # Resize images to the same size
             vid_frame, stream_frame = self.resize_images(vid_image, stream_image)
@@ -117,7 +119,6 @@ class poseCompare:
                 font_size = font_scale / len(runningScore)
                 text_position = (50, 60 * i + 30)  # (x, y) coordinates (top-left corner)
                 text2_position = (50, 60 * i + 60)
-
                 cv2.putText(frame, text, text_position, font, font_size, colors[i], font_thickness, cv2.LINE_AA)
                 cv2.putText(frame, text2, text2_position, font, font_size, colors[i], font_thickness, cv2.LINE_AA)
 
