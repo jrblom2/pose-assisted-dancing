@@ -93,6 +93,7 @@ class poseCompare:
             if not vidSuccess or not streamSuccess:
                 break
             stream_image = cv2.flip(stream_image, 1)
+            vid_image = cv2.rotate(vid_image, cv2.ROTATE_90_CLOCKWISE)
             # Resize images to the same size
             vid_frame, stream_frame = self.resize_images(vid_image, stream_image)
 
