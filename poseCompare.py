@@ -4,7 +4,9 @@ from yoloCompare import yoCompare
 from mediaPipeCompare import mpCompare
 import random
 import time
-from ffpyplayer.player import MediaPlayer
+import pygame
+import moviepy
+import threading
 
 font = cv2.FONT_HERSHEY_SIMPLEX
 font_scale = 0.75
@@ -21,6 +23,8 @@ class poseCompare:
             self.model = yoCompare()
         else:
             self.model = mpCompare()
+
+        pygame.mixer.init()
 
     def image_compare(self, img_path):
         img = cv2.imread(img_path)
@@ -66,11 +70,21 @@ class poseCompare:
 
         cv2.destroyAllWindows()
 
-    def dance_compare(self, video_path):
+    def dance_compare(self, video_path, audio_path=None):
         # Load video and start stream
         vid = cv2.VideoCapture(video_path)
         stream = cv2.VideoCapture(6)
-        audio = MediaPlayer(video_path)
+
+        # Get video properties for audio sync
+        video_fps = vid.get(cv2.CAP_PROP_FPS)
+        frame_duration = 1.0 / video_fps if video_fps > 0 else 1.0 / 30
+        
+        # Start audio playback if provided
+        audio_thread = None
+        if audio_path:
+            audio_thread = threading.Thread(target=self._play_audio, args=(audio_path,))
+            audio_thread.daemon = True
+            audio_thread.start()
 
         # Execute models
         vidSuccess = True
@@ -89,7 +103,6 @@ class poseCompare:
         while streamSuccess and vidSuccess:
             vidSuccess, vid_image = vid.read()
             streamSuccess, stream_image = stream.read()
-            audio_frame, val = audio.get_frame()
             if not vidSuccess or not streamSuccess:
                 break
             stream_image = cv2.flip(stream_image, 1)
@@ -133,6 +146,8 @@ class poseCompare:
             if (cv2.waitKey(1) & 0xFF == ord("q")) or (cv2.waitKey(1) == 27):
                 break
 
+        pygame.mixer.music.stop()
+
         # write video
         endTime = time.time()
         fps = len(frames) / (endTime - startTime)
@@ -142,6 +157,43 @@ class poseCompare:
         for frame in frames:
             video_writer.write(frame)
         video_writer.release()
+
+    def _play_audio(self, audio_path):
+        """Play audio file using pygame mixer"""
+        try:
+            pygame.mixer.music.load(audio_path)
+            pygame.mixer.music.play()
+        except pygame.error as e:
+            print(f"Error playing audio: {e}")
+
+    def dance_with_audio(self, video_path):
+        try:
+            from moviepy.editor import VideoFileClip
+            
+            # Extract audio from video
+            video_clip = VideoFileClip(video_path)
+            if video_clip.audio is not None:
+                temp_audio_path = "temp_audio.mp3"
+                video_clip.audio.write_audiofile(temp_audio_path, verbose=False, logger=None)
+                video_clip.close()
+                
+                # Use the regular dance_compare with extracted audio
+                self.dance_compare(video_path, temp_audio_path)
+                
+                # Clean up temporary file
+                import os
+                if os.path.exists(temp_audio_path):
+                    os.remove(temp_audio_path)
+            else:
+                print("No audio track found in video file")
+                self.dance_compare(video_path)
+                
+        except ImportError:
+            print("moviepy not installed. Install with: pip install moviepy")
+            self.dance_compare(video_path)
+        except Exception as e:
+            print(f"Error extracting audio: {e}")
+            self.dance_compare(video_path)
 
     def resize_images(self, vid_image, stream_image):
         height = min(vid_image.shape[0], stream_image.shape[0])
