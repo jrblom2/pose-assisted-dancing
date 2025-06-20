@@ -131,11 +131,14 @@ class poseCompare:
             for i, s in enumerate(scores):
                 if i not in runningScore:
                     runningScore[i] = []
-                    colors[i] = tuple(random.randint(0, 255) for _ in range(3))
+                    while True:
+                        colors[i] = tuple(random.randint(0, 255) for _ in range(3))
+                        if sum(colors[i]) / 3 > 170:
+                            break
                 runningScore[i].append(s)
                 rsAvg = round(sum(runningScore[i]) / len(runningScore[i]), 2) if runningScore[i] else 0
                 text = f'Current Score: {f'{s:.2f}'}'
-                text2 = f'Running Score: {rsAvg}'
+                text2 = f'Running Average: {rsAvg}'
 
                 # TODO should make position scale as font size gets smaller because of more scores
                 font_size = font_scale / len(runningScore)
@@ -147,6 +150,8 @@ class poseCompare:
             frame = cv2.resize(frame, None, fx=1.5, fy=1.5)
             frames.append(frame)
             cv2.imshow('', frame)
+
+            # Have to use a manual flag because the thread is slow to update its status
             if not audio_started and audio_thread is not None:
                 audio_thread.start()
                 audio_started = True
