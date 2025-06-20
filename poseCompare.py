@@ -100,9 +100,7 @@ class poseCompare:
         colors = {}
 
         # setup output
-        startTime = time.time()
-        output_file = f'output/{startTime}.mp4'
-        fourcc = cv2.VideoWriter_fourcc(*'MP4V')
+        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
         frames = []
 
         while streamSuccess and vidSuccess:
@@ -111,7 +109,7 @@ class poseCompare:
             if not vidSuccess or not streamSuccess:
                 break
             stream_image = cv2.flip(stream_image, 1)
-            vid_image = cv2.rotate(vid_image, cv2.ROTATE_90_CLOCKWISE)
+            # vid_image = cv2.rotate(vid_image, cv2.ROTATE_90_CLOCKWISE)
             # Resize images to the same size
             vid_frame, stream_frame = self.resize_images(vid_image, stream_image)
 
@@ -131,17 +129,19 @@ class poseCompare:
             for i, s in enumerate(scores):
                 if i not in runningScore:
                     runningScore[i] = []
-                    while True:
-                        colors[i] = tuple(random.randint(0, 255) for _ in range(3))
-                        if sum(colors[i]) / 3 > 170:
-                            break
+                    colors[i] = text_color
+                    # while True:
+                    #     colors[i] = tuple(random.randint(0, 255) for _ in range(3))
+                    #     if sum(colors[i]) / 3 > 170:
+                    #         break
                 runningScore[i].append(s)
                 rsAvg = round(sum(runningScore[i]) / len(runningScore[i]), 2) if runningScore[i] else 0
                 text = f'Current Score: {f'{s:.2f}'}'
                 text2 = f'Running Average: {rsAvg}'
 
                 # TODO should make position scale as font size gets smaller because of more scores
-                font_size = font_scale / len(runningScore)
+                font_size = font_scale
+                # font_size = font_scale / len(runningScore)
                 text_position = (50, 60 * i + 30)  # (x, y) coordinates (top-left corner)
                 text2_position = (50, 60 * i + 60)
                 cv2.putText(frame, text, text_position, font, font_size, colors[i], font_thickness, cv2.LINE_AA)
@@ -155,6 +155,8 @@ class poseCompare:
             if not audio_started and audio_thread is not None:
                 audio_thread.start()
                 audio_started = True
+                startTime = time.time()
+                output_file = f'output/{startTime}.mp4'
 
             if (cv2.waitKey(1) & 0xFF == ord("q")) or (cv2.waitKey(1) == 27):
                 break

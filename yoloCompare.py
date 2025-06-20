@@ -49,6 +49,7 @@ class yoCompare:
 
     def __init__(self):
         self.model = YOLO('yolo11n-pose.pt')
+        self.model.to('cuda')
 
     def detect(self, image):
         result = self.model(image, verbose=False)
