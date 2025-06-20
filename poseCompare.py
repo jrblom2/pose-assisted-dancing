@@ -5,7 +5,6 @@ from mediaPipeCompare import mpCompare
 import random
 import time
 import pygame
-import moviepy
 import threading
 
 font = cv2.FONT_HERSHEY_SIMPLEX
@@ -87,10 +86,10 @@ class poseCompare:
 
         # Start audio playback if provided
         audio_thread = None
+        audio_started = False
         if audio_path:
             audio_thread = threading.Thread(target=self._play_audio, args=(audio_path,))
             audio_thread.daemon = True
-            audio_thread.start()
 
         # Execute models
         vidSuccess = True
@@ -148,6 +147,9 @@ class poseCompare:
             frame = cv2.resize(frame, None, fx=1.5, fy=1.5)
             frames.append(frame)
             cv2.imshow('', frame)
+            if not audio_started and audio_thread is not None:
+                audio_thread.start()
+                audio_started = True
 
             if (cv2.waitKey(1) & 0xFF == ord("q")) or (cv2.waitKey(1) == 27):
                 break
@@ -171,36 +173,6 @@ class poseCompare:
             pygame.mixer.music.play()
         except pygame.error as e:
             print(f"Error playing audio: {e}")
-
-    def dance_with_audio(self, video_path):
-        try:
-            from moviepy.editor import VideoFileClip
-
-            # Extract audio from video
-            video_clip = VideoFileClip(video_path)
-            if video_clip.audio is not None:
-                temp_audio_path = "temp_audio.mp3"
-                video_clip.audio.write_audiofile(temp_audio_path, verbose=False, logger=None)
-                video_clip.close()
-
-                # Use the regular dance_compare with extracted audio
-                self.dance_compare(video_path, temp_audio_path)
-
-                # Clean up temporary file
-                import os
-
-                if os.path.exists(temp_audio_path):
-                    os.remove(temp_audio_path)
-            else:
-                print("No audio track found in video file")
-                self.dance_compare(video_path)
-
-        except ImportError:
-            print("moviepy not installed. Install with: pip install moviepy")
-            self.dance_compare(video_path)
-        except Exception as e:
-            print(f"Error extracting audio: {e}")
-            self.dance_compare(video_path)
 
     def resize_images(self, vid_image, stream_image):
         height = min(vid_image.shape[0], stream_image.shape[0])

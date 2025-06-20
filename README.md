@@ -30,7 +30,7 @@ ffmpeg -i your_dance_video.mp4 -q:a 0 -map a audio/your_dance_audio.wav
 
 ## Running
 ```
-python letsDance.py --backend yolo --mode dance --video dance_videos/ILoveCV.mp4 --audio ilovecv.wav --stream 0
+python letsDance.py --backend yolo --mode dance --video dance_videos/ILoveCV.mp4 --audio audio/ilovecv.wav --stream 0
 ```
 | Argument    | Required | Description                                             |
 | ----------- | -------- | ------------------------------------------------------- |
