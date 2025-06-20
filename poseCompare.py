@@ -60,7 +60,7 @@ class poseCompare:
             sets = self.model.detect(image)
             annotated_image = self.model.draw_landmarks_on_image(image, sets)
             if len(sets) == 2:
-                score = self.model.compare_detections(sets[0], sets[1])
+                score = self.model.compare_detections([sets[0]], [sets[1]])
                 text = f'Score: {score[0]:.2f}'
                 cv2.putText(
                     annotated_image, text, text_position, font, font_scale, text_color, font_thickness, cv2.LINE_AA
@@ -78,7 +78,7 @@ class poseCompare:
         # Get video properties for audio sync
         video_fps = vid.get(cv2.CAP_PROP_FPS)
         frame_duration = 1.0 / video_fps if video_fps > 0 else 1.0 / 30
-        
+
         # Start audio playback if provided
         audio_thread = None
         if audio_path:
@@ -169,25 +169,26 @@ class poseCompare:
     def dance_with_audio(self, video_path):
         try:
             from moviepy.editor import VideoFileClip
-            
+
             # Extract audio from video
             video_clip = VideoFileClip(video_path)
             if video_clip.audio is not None:
                 temp_audio_path = "temp_audio.mp3"
                 video_clip.audio.write_audiofile(temp_audio_path, verbose=False, logger=None)
                 video_clip.close()
-                
+
                 # Use the regular dance_compare with extracted audio
                 self.dance_compare(video_path, temp_audio_path)
-                
+
                 # Clean up temporary file
                 import os
+
                 if os.path.exists(temp_audio_path):
                     os.remove(temp_audio_path)
             else:
                 print("No audio track found in video file")
                 self.dance_compare(video_path)
-                
+
         except ImportError:
             print("moviepy not installed. Install with: pip install moviepy")
             self.dance_compare(video_path)
