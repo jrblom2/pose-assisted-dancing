@@ -179,3 +179,7 @@ cython_debug/
 *.pt
 
 output/
+
+audio/
+dance_videos/apple.mp4
+dance_videos/date.mp4
