@@ -26,9 +26,12 @@ class poseCompare:
 
         pygame.mixer.init()
 
-    def image_compare(self, img_path):
+    def image_compare(self, img_path, cam_stream):
         img = cv2.imread(img_path)
-        stream = cv2.VideoCapture(6)
+        if cam_stream is not None:
+            stream = cv2.VideoCapture(cam_stream)
+        else:
+            stream = cv2.VideoCapture(0)
 
         # Execute models
         streamSuccess = True
@@ -70,10 +73,13 @@ class poseCompare:
 
         cv2.destroyAllWindows()
 
-    def dance_compare(self, video_path, audio_path=None):
+    def dance_compare(self, video_path, cam_stream, audio_path=None):
         # Load video and start stream
         vid = cv2.VideoCapture(video_path)
-        stream = cv2.VideoCapture(6)
+        if cam_stream is not None:
+            stream = cv2.VideoCapture(cam_stream)
+        else:
+            stream = cv2.VideoCapture(0)
 
         # Get video properties for audio sync
         video_fps = vid.get(cv2.CAP_PROP_FPS)
